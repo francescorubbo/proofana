@@ -31,6 +31,8 @@
 #include "fastjet/tools/Subtractor.hh"
 #include "ANN/ANN.h"
 
+const double PI  =3.141592653589793238463;
+
 ///=========================================
 /// WorkerBegin: setup binning, etc
 ///=========================================
@@ -101,10 +103,13 @@ bool Analysis_pileup::ProcessEvent()
   // float JVT = jvt->JVT();
 
   for(int it=0; it< clusters("LCTopo"); ++it){
-  
-    Particle  *mycluster = &(cluster(0, "LCTopo"));
+    Particle  *mycluster = &(cluster(it, "LCTopo"));
     associateTrackstoCluster(mycluster);
+    computeJVF(mycluster);
   }
+
+  MomKey newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersLCTopo");
+  
   
   return true;
 }
@@ -124,24 +129,83 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   ANNpoint qpoint = annAllocPt(2,0);
   qpoint[0] = thecluster->p.Eta();
   qpoint[1] = thecluster->p.Phi();
+  ANNpoint qpointbis = annAllocPt(2,0);
+  qpointbis[0] = thecluster->p.Eta();
+  qpointbis[1] = thecluster->p.Phi() + 2*PI;
 
-  AddGoodTracks();
-  int ntrks = tracks("good");
-  ANNpointArray points = annAllocPts(ntrks,2);
+  selectTracks();
+  int ntrks = tracks("forjvf");
+  ANNpointArray points = annAllocPts(2*ntrks,2);
 
-  for(int it=0; it< tracks("good"); ++it){
+  for(int it=0; it< ntrks; ++it){
     ANNpoint point = annAllocPt(2,0);
-    point[0] = track(it).p.Eta();
-    point[1] = track(it).p.Phi();
+    point[0] = track(it,"forjvf").p.Eta();
+    point[1] = track(it,"forjvf").p.Phi();
     points[it] = point;
   }  
+  for(int it=0; it< ntrks; ++it){
+    ANNpoint point = annAllocPt(2,0);
+    point[0] = track(it,"forjvf").p.Eta();
+    point[1] = track(it,"forjvf").p.Phi()+2*PI;
+    points[ntrks+it] = point;
+  }  
 
-  ANNdist radius = 0.2;
-  ANNkd_tree* kdTree = new ANNkd_tree(points,ntrks,2);
-  ANNidxArray nnIdx = new ANNidx[ntrks];
-  int ntrksfound = kdTree->annkFRSearch(qpoint,radius,ntrks,nnIdx,NULL,0.0);
+  ANNdist radius = 0.3*0.3;
+  ANNkd_tree* kdTree = new ANNkd_tree(points,2*ntrks,2);
+  ANNidxArray nnIdx = new ANNidx[2*ntrks];
+  ANNidxArray nnIdxbis = new ANNidx[2*ntrks];
+  int ntrksfound = kdTree->annkFRSearch(qpoint,radius,2*ntrks,nnIdx,NULL,0.0);
+  int ntrksfoundbis = kdTree->annkFRSearch(qpointbis,radius,2*ntrks,nnIdxbis,NULL,0.0);
 
   thecluster->AddVec("assoctrks");
-  for(int it=0;it<ntrksfound;++it)
-    thecluster->Add("assoctrks",&(track(nnIdx[it],"good")));
+  for(int it=0;it<ntrksfound;++it){
+    int correctIdx = nnIdx[it];
+    if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
+    if(correctIdx>ntrks-1) correctIdx -= ntrks;
+    thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
+  }
+  for(int it=0;it<ntrksfoundbis;++it){
+    int correctIdx = nnIdxbis[it];
+    if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
+    if(correctIdx>ntrks-1) correctIdx -= ntrks;
+    thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
+  }
+  delete [] nnIdx;
+  delete [] nnIdxbis;
+  delete kdTree;
+  annClose();
 }
+
+ void Analysis_pileup::computeJVF(Particle *thecluster)
+{
+  int nassoctrks = thecluster->Objs("assoctrks");
+  if(nassoctrks<1){
+    thecluster->Set("corrJVF",-1);
+    thecluster->Set("JVF",-1);
+    return;
+  }
+  double ptpu = 0.,ptpv = 0.;
+  for(int it=0; it< nassoctrks; ++it){
+    Particle* trk = (Particle*) thecluster->Obj("assoctrks",it);
+    (trk->Int("origin")==0 ? ptpv : ptpu) += trk->p.Pt();
+  }
+  float kfac = 0.01;
+  thecluster->Set("JVF",ptpv/(ptpv+ptpu));
+  thecluster->Set("corrJVF",ptpv/(ptpv+ptpu/(tracks("forjvf")*kfac)));
+}
+
+ void Analysis_pileup::selectTracks()
+{
+  const static MomKey tracksforjvf("tracksforjvf");
+  AddVec(tracksforjvf);
+  for(int iTr = 0; iTr < tracks(); iTr++){
+    if(fabs(track(iTr).Float("d0_wrtPV")) > 2.5) continue;
+    if(track(iTr).p.Pt() < 0.5) continue;
+    if(fabs(track(iTr).p.Eta()) > 2.5) continue;
+    if(track(iTr).Int("nPixHits")+track(iTr).Int("nPixelDeadSensors") < 1) continue;
+    if(track(iTr).Int("nSCTHits")+track(iTr).Int("nSCTDeadSensors") < 6) continue;
+    if(track(iTr).Float("chi2")/((float)track(iTr).Int("ndof")) > 5.) continue;
+    Add(tracksforjvf,&track(iTr));
+  }
+}
+

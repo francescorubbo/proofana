@@ -48,7 +48,8 @@ class Analysis_pileup : public Analysis_JetMET_Base {
   virtual void    WorkerTerminate();
 
   void associateTrackstoCluster(Particle *thecluster);
-
+  void computeJVF(Particle* thecluster);
+  void selectTracks();
   private :			  
 
   /* JetVertexTagger* jvt; */
