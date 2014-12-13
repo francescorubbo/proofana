@@ -228,7 +228,8 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   const static MomKey clustersjvf("clustersjvf");
   AddVec(clustersjvf);
   for(int iCl = 0; iCl < clusters("LCTopo"); iCl++){
-    if(cluster(iCl,"LCTopo").Float("corrJVF") < jvfcut) continue;
+    float cljvf = cluster(iCl,"LCTopo").Float("corrJVF");
+    if(cljvf>-1 && cljvf < jvfcut) continue;
     Add(clustersjvf,&cluster(iCl,"LCTopo"));
   }
 }
