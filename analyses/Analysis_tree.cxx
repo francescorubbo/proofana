@@ -42,6 +42,8 @@
   fTree = new TTree("tree", "tree");
   AddBranches(fTree);
 
+  cljvf   = new vector<float>();  
+  cljvfcorr   = new vector<float>();  
   clfem   = new vector<float>();  
   clcenterlambda   = new vector<float>();  
   clpt     = new vector<float>();  
@@ -53,6 +55,25 @@
   trketa    = new vector<float>();  
   trkphi    = new vector<float>();  
   trkispv   = new vector<bool>();  
+
+  j0ncl     = new vector<int>();  
+  j1ncl     = new vector<int>();  
+  j2ncl     = new vector<int>();  
+  j3ncl     = new vector<int>();  
+  j4ncl     = new vector<int>();  
+  j5ncl     = new vector<int>();  
+  j0pt     = new vector<float>();  
+  j1pt     = new vector<float>();  
+  j2pt     = new vector<float>();  
+  j3pt     = new vector<float>();  
+  j4pt     = new vector<float>();  
+  j5pt     = new vector<float>();  
+  tj0pt     = new vector<float>();  
+  tj1pt     = new vector<float>();  
+  tj2pt     = new vector<float>();  
+  tj3pt     = new vector<float>();  
+  tj4pt     = new vector<float>();  
+  tj5pt     = new vector<float>();  
 
   if (Debug()) cout << "Analysis_tree: DEBUG Finish WorkerBegin()" << endl;
 }
@@ -84,6 +105,8 @@ void Analysis_tree::WorkerTerminate()
 
   fTree->Write();
   // Nothing more
+  delete cljvf    ;  
+  delete cljvfcorr;  
   delete clfem    ;  
   delete clcenterlambda    ;  
   delete clpt    ;  
@@ -95,6 +118,25 @@ void Analysis_tree::WorkerTerminate()
   delete trkphi   ;  
   delete trkispv  ;  
 
+  delete j0ncl    ;  
+  delete j1ncl    ;  
+  delete j2ncl    ;  
+  delete j3ncl    ;  
+  delete j4ncl    ;  
+  delete j5ncl    ;  
+  delete j0pt    ;  
+  delete j1pt    ;  
+  delete j2pt    ;  
+  delete j3pt    ;  
+  delete j4pt    ;  
+  delete j5pt    ;  
+  delete tj0pt    ;  
+  delete tj1pt    ;  
+  delete tj2pt    ;  
+  delete tj3pt    ;  
+  delete tj4pt    ;  
+  delete tj5pt    ;  
+
 }
 
 void Analysis_tree::FillTree(const MomKey Key){
@@ -105,6 +147,18 @@ void Analysis_tree::FillTree(const MomKey Key){
     FillClVars(fTree, i, Key);
   for(int i=0; i<tracks(); ++i)
     FillTrkVars(fTree, i);
+  for(int i=0; i<jets("AntiKt4LCTopo"); ++i)
+    FillJetVars(fTree, i, "AntiKt4LCTopo",j0pt,tj0pt,j0ncl);
+  for(int i=0; i<jets("AntiKt4jvf1"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf1",j1pt,tj1pt,j1ncl);
+  for(int i=0; i<jets("AntiKt4jvf2"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf2",j2pt,tj2pt,j2ncl);
+  for(int i=0; i<jets("AntiKt4jvf3"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf3",j3pt,tj3pt,j3ncl);
+  for(int i=0; i<jets("AntiKt4jvf4"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf4",j4pt,tj4pt,j4ncl);
+  for(int i=0; i<jets("AntiKt4jvf5"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf5",j5pt,tj5pt,j5ncl);
   
   fTree->Fill();
 
@@ -124,6 +178,8 @@ void Analysis_tree::FillTree(const MomKey Key){
 
    // Jet vars ------------------------------------------------------------
 
+   tree->Branch("cljvf","std::vector<float>",&cljvf);
+   tree->Branch("cljvfcorr","std::vector<float>",&cljvfcorr);
    tree->Branch("clfem","std::vector<float>",&clfem);
    tree->Branch("clcenterlambda","std::vector<float>",&clcenterlambda);
    tree->Branch("clpt","std::vector<float>",&clpt);
@@ -135,6 +191,25 @@ void Analysis_tree::FillTree(const MomKey Key){
    tree->Branch("trkphi","std::vector<float>",&trkphi);
    tree->Branch("trkispv","std::vector<bool>",&trkispv);
 
+   tree->Branch("j0ncl","std::vector<int>",&j0ncl);
+   tree->Branch("j1ncl","std::vector<int>",&j1ncl);
+   tree->Branch("j2ncl","std::vector<int>",&j2ncl);
+   tree->Branch("j3ncl","std::vector<int>",&j3ncl);
+   tree->Branch("j4ncl","std::vector<int>",&j4ncl);
+   tree->Branch("j5ncl","std::vector<int>",&j5ncl);
+   tree->Branch("j0pt","std::vector<float>",&j0pt);
+   tree->Branch("j1pt","std::vector<float>",&j1pt);
+   tree->Branch("j2pt","std::vector<float>",&j2pt);
+   tree->Branch("j3pt","std::vector<float>",&j3pt);
+   tree->Branch("j4pt","std::vector<float>",&j4pt);
+   tree->Branch("j5pt","std::vector<float>",&j5pt);
+   tree->Branch("tj0pt","std::vector<float>",&tj0pt);
+   tree->Branch("tj1pt","std::vector<float>",&tj1pt);
+   tree->Branch("tj2pt","std::vector<float>",&tj2pt);
+   tree->Branch("tj3pt","std::vector<float>",&tj3pt);
+   tree->Branch("tj4pt","std::vector<float>",&tj4pt);
+   tree->Branch("tj5pt","std::vector<float>",&tj5pt);
+   
    if(Debug()) cout <<"Analysis_tree::AddBranches End" << endl;
    return;
  }
@@ -150,6 +225,8 @@ void Analysis_tree::ResetBranches(TTree *tree){
   fTMu                    = -99;
 
   // jet vars
+  cljvfcorr ->clear();  
+  cljvf     ->clear();  
   clfem     ->clear();  
   clcenterlambda     ->clear();  
   clpt     ->clear();  
@@ -160,6 +237,25 @@ void Analysis_tree::ResetBranches(TTree *tree){
   trketa    ->clear();  
   trkphi    ->clear();  
   trkispv    ->clear();  
+
+  j0ncl     ->clear();  
+  j1ncl     ->clear();  
+  j2ncl     ->clear();  
+  j3ncl     ->clear();  
+  j4ncl     ->clear();  
+  j5ncl     ->clear();  
+  j0pt     ->clear();  
+  j1pt     ->clear();  
+  j2pt     ->clear();  
+  j3pt     ->clear();  
+  j4pt     ->clear();  
+  j5pt     ->clear();  
+  tj0pt     ->clear();  
+  tj1pt     ->clear();  
+  tj2pt     ->clear();  
+  tj3pt     ->clear();  
+  tj4pt     ->clear();  
+  tj5pt     ->clear();  
 
   if(Debug()) cout <<"Analysis_tree::ResetBranches End" << endl;
   return;
@@ -184,6 +280,8 @@ void Analysis_tree::FillClVars(TTree* tree, int jindex, const MomKey Key){
 
   Particle  *mycl         = &(cluster(jindex, Key));
 
+  cljvf->push_back(mycl->Float("JVF"));
+  cljvfcorr->push_back(mycl->Float("corrJVF"));
   clfem->push_back(mycl->Float("fem"));
   clcenterlambda->push_back(mycl->Float("centerlambda"));
   clpt->push_back(mycl->p.Pt());
@@ -204,6 +302,26 @@ void Analysis_tree::FillTrkVars(TTree* tree, int jindex){
   trketa->push_back(mytrk->p.Eta());
   trkphi->push_back(mytrk->p.Phi());
   trkispv->push_back(mytrk->Int("origin")==0);
+
+  if(Debug()) cout <<"Analysis_tree::FillTrkVars End" << endl;
+  return;
+}
+
+void Analysis_tree::FillJetVars(TTree* tree, int jindex,
+				const MomKey jetkey, 
+				vector<float> *jetpt, vector<float> *tjetpt,
+				vector<int> *jetncl){
+  if(Debug()) cout <<"Analysis_tree::FillJetVars Begin" << endl;
+
+  Particle  *myjet         = &(jet(jindex,jetkey));
+
+  jetpt ->push_back(myjet->p.Pt());
+  jetncl->push_back(myjet->Objs("constituents"));
+  if(myjet->Bool("isHSJet")){
+    Particle *tjet = (Particle*) myjet->Obj("AntiKt4Truth_match");
+    tjetpt ->push_back(tjet->p.Pt());}
+  else
+    tjetpt ->push_back(-1);
 
   if(Debug()) cout <<"Analysis_tree::FillTrkVars End" << endl;
   return;
