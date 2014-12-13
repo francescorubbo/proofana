@@ -108,9 +108,23 @@ bool Analysis_pileup::ProcessEvent()
     computeJVF(mycluster);
   }
 
-  MomKey newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersLCTopo");
-  
-  
+  MomKey newjets;
+  selectClusters(0.1);
+  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf1");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  selectClusters(0.2);
+  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf2");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  selectClusters(0.3);
+  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf3");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  selectClusters(0.4);
+  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf4");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  selectClusters(0.5);
+  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf5");
+  addTruthMatch(newjets,"AntiKt4Truth");
+    
   return true;
 }
 
@@ -209,3 +223,49 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   }
 }
 
+ void Analysis_pileup::selectClusters(float jvfcut)
+{
+  const static MomKey clustersjvf("clustersjvf");
+  AddVec(clustersjvf);
+  for(int iCl = 0; iCl < clusters("LCTopo"); iCl++){
+    if(cluster(iCl,"LCTopo").Float("corrJVF") < jvfcut) continue;
+    Add(clustersjvf,&cluster(iCl,"LCTopo"));
+  }
+}
+
+void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetType){
+  for(int iJet = 0; iJet < jets(JetType); iJet++) {
+    Particle* thejet = &(jet(iJet, JetType));
+    
+    // defaults
+    thejet->Set("isPUJet", false);
+    thejet->Set("isHSJet", false);
+    
+    float mindR= 999.99; 
+    float maxPt=-999.99; 
+    int minDRindex =-1;
+    int maxPtIndex =-1;
+    for(int iTrueJ=0; iTrueJ < jets(TruthJetType); ++iTrueJ){
+      Particle* trueJ = &(jet(iTrueJ, TruthJetType));
+
+      float dR = (thejet->p).DeltaR(trueJ->p);
+      if(dR<mindR){ mindR = dR; minDRindex = iTrueJ;}
+      if(dR < Float("MAXJETTRUTHMATCHDR") && maxPt < trueJ->p.Pt())   
+	{ maxPt = trueJ->p.Pt(); maxPtIndex = iTrueJ;} 
+    }//true jets
+
+    if(maxPtIndex != -1){
+      thejet->Add(TruthJetType+"_match", &(jet(maxPtIndex, TruthJetType)));
+      thejet->Set("isHSJet", true);  
+      thejet->Set("isPUJet", false); 
+      if (!(jet(maxPtIndex, TruthJetType).Exists(JetType+"_match"))) 
+	jet(maxPtIndex, TruthJetType).Add(JetType+"_match", thejet, true); 
+    } else if (mindR> (Float("MINJETPUDR"))){
+      thejet->Set("isPUJet", true);
+      thejet->Set("isHSJet", false);  
+    } else {
+      thejet->Set("isPUJet", false);
+      thejet->Set("isHSJet", false);  
+    }//alternatives to maxPtIndex != -1
+  }//jet loop
+}

@@ -50,6 +50,9 @@ class Analysis_pileup : public Analysis_JetMET_Base {
   void associateTrackstoCluster(Particle *thecluster);
   void computeJVF(Particle* thecluster);
   void selectTracks();
+  void selectClusters(float jvfcut);
+  void addTruthMatch(const MomKey JetType, const MomKey TruthJetType);
+
   private :			  
 
   /* JetVertexTagger* jvt; */
