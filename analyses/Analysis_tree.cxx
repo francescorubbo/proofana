@@ -39,10 +39,10 @@
 
   Analysis_JetMET_Base::WorkerBegin();
 
+  OutputDir()->cd();
   fTree = new TTree("tree", "tree");
   AddBranches(fTree);
 
-  cljvf   = new vector<float>();  
   cljvfcorr   = new vector<float>();  
   clfem   = new vector<float>();  
   clcenterlambda   = new vector<float>();  
@@ -105,7 +105,6 @@ void Analysis_tree::WorkerTerminate()
 
   fTree->Write();
   // Nothing more
-  delete cljvf    ;  
   delete cljvfcorr;  
   delete clfem    ;  
   delete clcenterlambda    ;  
@@ -178,7 +177,6 @@ void Analysis_tree::FillTree(const MomKey Key){
 
    // Jet vars ------------------------------------------------------------
 
-   tree->Branch("cljvf","std::vector<float>",&cljvf);
    tree->Branch("cljvfcorr","std::vector<float>",&cljvfcorr);
    tree->Branch("clfem","std::vector<float>",&clfem);
    tree->Branch("clcenterlambda","std::vector<float>",&clcenterlambda);
@@ -226,7 +224,6 @@ void Analysis_tree::ResetBranches(TTree *tree){
 
   // jet vars
   cljvfcorr ->clear();  
-  cljvf     ->clear();  
   clfem     ->clear();  
   clcenterlambda     ->clear();  
   clpt     ->clear();  
@@ -280,7 +277,6 @@ void Analysis_tree::FillClVars(TTree* tree, int jindex, const MomKey Key){
 
   Particle  *mycl         = &(cluster(jindex, Key));
 
-  cljvf->push_back(mycl->Float("JVF"));
   cljvfcorr->push_back(mycl->Float("corrJVF"));
   clfem->push_back(mycl->Float("fem"));
   clcenterlambda->push_back(mycl->Float("centerlambda"));

@@ -60,7 +60,6 @@ class Analysis_tree : public Analysis_JetMET_Base {
   // 
   vector<float>   *clcenterlambda;
   vector<float>   *cljvfcorr;
-  vector<float>   *cljvf;
   vector<float>   *clfem;
   vector<float>   *clpt;
   vector<float>   *cleta;
