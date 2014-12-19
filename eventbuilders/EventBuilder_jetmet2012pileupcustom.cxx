@@ -273,7 +273,16 @@ Bool_t EventBuilder_jetmet2012pileupcustom::TrackVertexLinks(){
 
 
 void EventBuilder_jetmet2012pileupcustom::CopyMoreClusters(){
+
   const MomKey cltype = "LCTopo";
+
+  if(!doCOMMON){
+    for(int iCl = 0; iCl<fEvt->clusters(cltype);++iCl){   
+      fEvt->cluster(iCl,cltype).Set("fem", -99.);
+      fEvt->cluster(iCl,cltype).Set("centerlambda", -99.);
+    }
+    return;
+  }  
 
   vector<string> ems;
   ems.push_back("cl_E_PreSamplerB");
