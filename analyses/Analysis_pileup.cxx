@@ -47,7 +47,7 @@ const double PI  =3.141592653589793238463;
   cout << maindir << " is the maindir we work from! " << endl;
   cout << gSystem->Exec(TString("ls "+maindir).Data()) << endl;
 
-  // jvt = new JetVertexTagger(0.2, maindir+"/utils/JetVertexTagger/data/JVTlikelihood_20140805.root");
+  jvt = new JetVertexTagger(0.2, maindir+"/utils/JetVertexTagger/data/JVTlikelihood_20140805.root");
 
   if (Debug()) cout << "Analysis_pileup: DEBUG Finish WorkerBegin()" << endl;  
 } 
@@ -66,66 +66,56 @@ bool Analysis_pileup::ProcessEvent()
   // -----------------------------
   // make objects truthsStable: stable truth particles for jets 
   Analysis_JetMET_Base::AddStableParticles();
-  
-  // vector<float> trk_pt, trk_z0_wrtPV;
-  // for(int it=0; it< tracks(); ++it){
-  //   trk_pt                    .push_back(track(it).p.Pt());
-  //   trk_z0_wrtPV              .push_back(track(it).Float("z0_wrtPV"));
-  //   track(it).Set("JVTindex", it);
-  // }
 
-  // // trk to vtx assoc                                                                                                                                               
-  // vector<vector<int> > vxp_trk_index;
-  // for(int iv=0; iv<vtxs(); ++iv){
-  //   vector<int> assoc_track_indices;
-  //   for(int it=0; it<vtx(iv).Objs("vtxTracks"); ++it){
-  //     Particle* trk = (Particle*) vtx(iv).Obj("vtxTracks",it);
-  //     assoc_track_indices.push_back(trk->Int("JVTindex"));
-  //   }
-  //   vxp_trk_index.push_back(assoc_track_indices);
-  // }
-
-  // // JVT                                                                                                                                                            
-  // jvt->init(trk_pt, trk_z0_wrtPV, vxp_trk_index);
-
-  // Particle  *myjet         = &(jet(0, "AntiKt4LCTopo"));
-  // // myjet->Show();
-
-  // vector<int> assoc_trk_indices;
-  // for(int it=0; it<myjet->Int("nTrackAssoc"); ++it){
-  //   Particle* trk = (Particle*) myjet->Obj("GhostAssocTrack", it);
-  //   assoc_trk_indices.push_back(trk->Int("JVTindex"));
-  // }
-  // bool pass = (*jvt)(myjet->p.Pt(), assoc_trk_indices);
-
-  // float corrJVF = jvt->corrJVF();
-  // float RpT = jvt->RpT();
-  // float JVT = jvt->JVT();
-
-  for(int it=0; it< clusters("LCTopo"); ++it){
-    Particle  *mycluster = &(cluster(it, "LCTopo"));
-    associateTrackstoCluster(mycluster);
-    computeJVF(mycluster);
+  vector<float> trk_pt, trk_z0_wrtPV;
+  for(int it=0; it< tracks(); ++it){
+    trk_pt .push_back(track(it).p.Pt());
+    trk_z0_wrtPV .push_back(track(it).Float("z0_wrtPV"));
+    track(it).Set("JVTindex", it);
   }
+  // trk to vtx assoc
+  vector<vector<int> > vxp_trk_index;
+  for(int iv=0; iv<vtxs(); ++iv){
+    vector<int> assoc_track_indices;
+    for(int it=0; it<vtx(iv).Objs("vtxTracks"); ++it){
+      Particle* trk = (Particle*) vtx(iv).Obj("vtxTracks",it);
+      assoc_track_indices.push_back(trk->Int("JVTindex"));
+    }
+    vxp_trk_index.push_back(assoc_track_indices);
+  }
+  // JVT
+  jvt->init(trk_pt, trk_z0_wrtPV, vxp_trk_index);
+  
+   for(int it=0; it< clusters("LCTopo"); ++it){
+     Particle  *mycluster = &(cluster(it, "LCTopo"));
+     associateTrackstoCluster(mycluster);
+     vector<int> assoc_trk_indices;
+     for(int it=0; it<mycluster->Objs("assoctrks"); ++it){
+       Particle* trk = (Particle*) mycluster->Obj("assoctrks", it);
+       assoc_trk_indices.push_back(trk->Int("JVTindex"));
+     }
+     (*jvt)(mycluster->p.Pt(),assoc_trk_indices);
+     mycluster->Set("corrJVF",jvt->corrJVF());
+   }
 
-  MomKey newjets;
-  selectClusters(0.1);
-  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf1");
-  addTruthMatch(newjets,"AntiKt4Truth");
-  selectClusters(0.2);
-  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf2");
-  addTruthMatch(newjets,"AntiKt4Truth");
-  selectClusters(0.3);
-  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf3");
-  addTruthMatch(newjets,"AntiKt4Truth");
-  selectClusters(0.4);
-  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf4");
-  addTruthMatch(newjets,"AntiKt4Truth");
-  selectClusters(0.5);
-  newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf","jvf5");
-  addTruthMatch(newjets,"AntiKt4Truth");
-    
-  return true;
+   MomKey newjets;
+   selectClusters(0.1,"jvf1");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf1","jvf1");
+   addTruthMatch(newjets,"AntiKt4Truth");
+   selectClusters(0.2,"jvf2");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf2","jvf2");
+   addTruthMatch(newjets,"AntiKt4Truth");
+   selectClusters(0.3,"jvf3");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf3","jvf3");
+   addTruthMatch(newjets,"AntiKt4Truth");
+   selectClusters(0.4,"jvf4");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf4","jvf4");
+   addTruthMatch(newjets,"AntiKt4Truth");
+   selectClusters(0.5,"jvf5");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
+   addTruthMatch(newjets,"AntiKt4Truth");
+   
+   return true;
 }
 
 /// WorkerTerminate: clean up
@@ -146,71 +136,51 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   ANNpoint qpointbis = annAllocPt(2,0);
   qpointbis[0] = thecluster->p.Eta();
   qpointbis[1] = thecluster->p.Phi() + 2*PI;
-
+  
   selectTracks();
   int ntrks = tracks("forjvf");
   ANNpointArray points = annAllocPts(2*ntrks,2);
+   for(int it=0; it< ntrks; ++it){
+     points[it][0] = track(it,"forjvf").p.Eta();
+     points[it][1] = track(it,"forjvf").p.Phi();
+   }  
+   for(int it=0; it< ntrks; ++it){
+     points[ntrks+it][0] = track(it,"forjvf").p.Eta();
+     points[ntrks+it][1] = track(it,"forjvf").p.Phi()+2*PI;
+   } 
 
-  for(int it=0; it< ntrks; ++it){
-    ANNpoint point = annAllocPt(2,0);
-    point[0] = track(it,"forjvf").p.Eta();
-    point[1] = track(it,"forjvf").p.Phi();
-    points[it] = point;
-  }  
-  for(int it=0; it< ntrks; ++it){
-    ANNpoint point = annAllocPt(2,0);
-    point[0] = track(it,"forjvf").p.Eta();
-    point[1] = track(it,"forjvf").p.Phi()+2*PI;
-    points[ntrks+it] = point;
-  }  
+   ANNdist radius = 0.3*0.3;
+   ANNkd_tree* kdTree = new ANNkd_tree(points,2*ntrks,2);
+   ANNidxArray nnIdx = new ANNidx[2*ntrks];
+   ANNidxArray nnIdxbis = new ANNidx[2*ntrks];
+   int ntrksfound = kdTree->annkFRSearch(qpoint,radius,2*ntrks,nnIdx,NULL,0.0);
+   int ntrksfoundbis = kdTree->annkFRSearch(qpointbis,radius,2*ntrks,nnIdxbis,NULL,0.0);
 
-  ANNdist radius = 0.3*0.3;
-  ANNkd_tree* kdTree = new ANNkd_tree(points,2*ntrks,2);
-  ANNidxArray nnIdx = new ANNidx[2*ntrks];
-  ANNidxArray nnIdxbis = new ANNidx[2*ntrks];
-  int ntrksfound = kdTree->annkFRSearch(qpoint,radius,2*ntrks,nnIdx,NULL,0.0);
-  int ntrksfoundbis = kdTree->annkFRSearch(qpointbis,radius,2*ntrks,nnIdxbis,NULL,0.0);
-
-  thecluster->AddVec("assoctrks");
-  for(int it=0;it<ntrksfound;++it){
-    int correctIdx = nnIdx[it];
-    if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
-    if(correctIdx>ntrks-1) correctIdx -= ntrks;
-    thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
-  }
-  for(int it=0;it<ntrksfoundbis;++it){
-    int correctIdx = nnIdxbis[it];
-    if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
-    if(correctIdx>ntrks-1) correctIdx -= ntrks;
-    thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
-  }
+   thecluster->AddVec("assoctrks");
+   for(int it=0;it<ntrksfound;++it){
+     int correctIdx = nnIdx[it];
+     if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
+     if(correctIdx>ntrks-1) correctIdx -= ntrks;
+     thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
+   }
+   for(int it=0;it<ntrksfoundbis;++it){
+     int correctIdx = nnIdxbis[it];
+     if(points[correctIdx][1]>2*PI || points[correctIdx][1]<0.) continue;
+     if(correctIdx>ntrks-1) correctIdx -= ntrks;
+     thecluster->Add("assoctrks",&(track(correctIdx,"forjvf")));
+   }
+  annDeallocPt(qpoint);
+  annDeallocPt(qpointbis);
+  annDeallocPts(points);
   delete [] nnIdx;
   delete [] nnIdxbis;
   delete kdTree;
   annClose();
 }
 
- void Analysis_pileup::computeJVF(Particle *thecluster)
-{
-  int nassoctrks = thecluster->Objs("assoctrks");
-  if(nassoctrks<1){
-    thecluster->Set("corrJVF",-1);
-    thecluster->Set("JVF",-1);
-    return;
-  }
-  double ptpu = 0.,ptpv = 0.;
-  for(int it=0; it< nassoctrks; ++it){
-    Particle* trk = (Particle*) thecluster->Obj("assoctrks",it);
-    (trk->Int("origin")==0 ? ptpv : ptpu) += trk->p.Pt();
-  }
-  float kfac = 0.01;
-  thecluster->Set("JVF",ptpv/(ptpv+ptpu));
-  thecluster->Set("corrJVF",ptpv/(ptpv+ptpu/(tracks("forjvf")*kfac)));
-}
-
  void Analysis_pileup::selectTracks()
 {
-  const static MomKey tracksforjvf("tracksforjvf");
+  const MomKey tracksforjvf("tracksforjvf");
   AddVec(tracksforjvf);
   for(int iTr = 0; iTr < tracks(); iTr++){
     if(fabs(track(iTr).Float("d0_wrtPV")) > 2.5) continue;
@@ -223,9 +193,9 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   }
 }
 
- void Analysis_pileup::selectClusters(float jvfcut)
+void Analysis_pileup::selectClusters(float jvfcut,string suffix)
 {
-  const static MomKey clustersjvf("clustersjvf");
+  const MomKey clustersjvf("clusters"+suffix);
   AddVec(clustersjvf);
   for(int iCl = 0; iCl < clusters("LCTopo"); iCl++){
     float cljvf = cluster(iCl,"LCTopo").Float("corrJVF");

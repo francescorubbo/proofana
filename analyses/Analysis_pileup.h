@@ -18,7 +18,7 @@
 #include <TTree.h>
 #include "Particle.h"
 #include "TMVA/Reader.h"
-/* #include "JetVertexTagger/JetVertexTagger.h" */
+#include "JetVertexTagger/JetVertexTagger.h" 
 #include "ANN/ANN.h"
  
 using std::cout;
@@ -48,14 +48,13 @@ class Analysis_pileup : public Analysis_JetMET_Base {
   virtual void    WorkerTerminate();
 
   void associateTrackstoCluster(Particle *thecluster);
-  void computeJVF(Particle* thecluster);
   void selectTracks();
-  void selectClusters(float jvfcut);
+  void selectClusters(float jvfcut,string suffix);
   void addTruthMatch(const MomKey JetType, const MomKey TruthJetType);
 
   private :			  
 
-  /* JetVertexTagger* jvt; */
+  JetVertexTagger* jvt; 
 
 
 };
