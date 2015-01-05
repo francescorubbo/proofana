@@ -146,8 +146,8 @@ void Analysis_tree::FillTree(const MomKey Key){
     FillClVars(fTree, i, Key);
   for(int i=0; i<tracks(); ++i)
     FillTrkVars(fTree, i);
-  for(int i=0; i<jets("AntiKt4LCTopo"); ++i)
-    FillJetVars(fTree, i, "AntiKt4LCTopo",j0pt,tj0pt,j0ncl);
+  for(int i=0; i<jets("AntiKt4jvf0"); ++i)
+    FillJetVars(fTree, i, "AntiKt4jvf0",j0pt,tj0pt,j0ncl);
   for(int i=0; i<jets("AntiKt4jvf1"); ++i)
     FillJetVars(fTree, i, "AntiKt4jvf1",j1pt,tj1pt,j1ncl);
   for(int i=0; i<jets("AntiKt4jvf2"); ++i)
