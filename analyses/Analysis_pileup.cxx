@@ -99,6 +99,9 @@ bool Analysis_pileup::ProcessEvent()
    }
 
    MomKey newjets;
+   selectClusters(0.0,"jvf0");
+   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
+   addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.1,"jvf1");
    newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf1","jvf1");
    addTruthMatch(newjets,"AntiKt4Truth");
