@@ -100,22 +100,22 @@ bool Analysis_pileup::ProcessEvent()
 
    MomKey newjets;
    selectClusters(0.0,"jvf0");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
    addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.1,"jvf1");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf1","jvf1");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf1","jvf1");
    addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.2,"jvf2");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf2","jvf2");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf2","jvf2");
    addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.3,"jvf3");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf3","jvf3");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf3","jvf3");
    addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.4,"jvf4");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf4","jvf4");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf4","jvf4");
    addTruthMatch(newjets,"AntiKt4Truth");
    selectClusters(0.5,"jvf5");
-   newjets = MakeJets(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
    addTruthMatch(newjets,"AntiKt4Truth");
    
    return true;
@@ -144,15 +144,19 @@ void Analysis_pileup::associateTrackstoCluster(Particle *thecluster)
   int ntrks = tracks("forjvf");
   ANNpointArray points = annAllocPts(2*ntrks,2);
    for(int it=0; it< ntrks; ++it){
-     points[it][0] = track(it,"forjvf").p.Eta();
-     points[it][1] = track(it,"forjvf").p.Phi();
+     // points[it][0] = track(it,"forjvf").p.Eta();
+     // points[it][1] = track(it,"forjvf").p.Phi();
+     points[it][0] = track(it,"forjvf").Float("eta_atCalo");
+     points[it][1] = track(it,"forjvf").Float("phi_atCalo");
    }  
    for(int it=0; it< ntrks; ++it){
-     points[ntrks+it][0] = track(it,"forjvf").p.Eta();
-     points[ntrks+it][1] = track(it,"forjvf").p.Phi()+2*PI;
+     // points[ntrks+it][0] = track(it,"forjvf").p.Eta();
+     // points[ntrks+it][1] = track(it,"forjvf").p.Phi()+2*PI;
+     points[ntrks+it][0] = track(it,"forjvf").Float("eta_atCalo");
+     points[ntrks+it][1] = track(it,"forjvf").Float("phi_atCalo")+2*PI;
    } 
 
-   ANNdist radius = 0.3*0.3;
+   ANNdist radius = 0.1*0.1;
    ANNkd_tree* kdTree = new ANNkd_tree(points,2*ntrks,2);
    ANNidxArray nnIdx = new ANNidx[2*ntrks];
    ANNidxArray nnIdxbis = new ANNidx[2*ntrks];
@@ -242,4 +246,76 @@ void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetT
       thejet->Set("isHSJet", false);  
     }//alternatives to maxPtIndex != -1
   }//jet loop
+}
+
+MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const double jetR, const MomKey constType, const MomKey extra){
+
+  const static MomKey SJetKey("jets");
+  vector<fastjet::PseudoJet> inputConst = ObjsToPJ(constType);
+
+  fastjet::JetDefinition jetDef(algo, jetR,fastjet::E_scheme, fastjet::Best);
+  fastjet::AreaDefinition active_area = fastjet::AreaDefinition(fastjet::active_area);
+  fastjet::ClusterSequenceArea clustSeq(inputConst, jetDef, active_area);
+
+  vector<fastjet::PseudoJet> inclusiveJets = sorted_by_pt(clustSeq.inclusive_jets(10.));
+
+  TString key;
+
+  switch(algo){
+    case fastjet::antikt_algorithm:
+      key = "AntiKt";
+      break;
+    
+    case fastjet::kt_algorithm:
+      key = "Kt";
+      break;
+    
+    case fastjet::cambridge_algorithm:
+      key = "CamKt";
+      break;
+    
+    default:
+      cout << " this jet algorithm is not supported! quitting " << endl;
+      exit(-1);
+      break;
+  }
+  
+  key+= TString::Format("%.0f",10.*jetR);
+
+  const static MomKey LCKey("clustersLCTopo");
+  const static MomKey TrackKey("tracksgood");
+  const static MomKey TruthKey("truthsStable");
+
+  if(constType==LCKey){
+  	key+="LCTopo";
+  } else if (constType==TrackKey){
+  	key+="TrackZ";
+  } else if(constType==TruthKey){
+    key+="Truth";
+  }
+  key+=extra;
+
+  if(Debug()) cout << "MakeJets with key " << key << endl;
+
+  MomKey FinalKey(key);
+  MomKey FFinalKey = SJetKey + FinalKey;
+
+  AddVec(SJetKey+FinalKey);
+
+  for(unsigned int iJet = 0 ; iJet < inclusiveJets.size() ; iJet++){
+  	fastjet::PseudoJet jet = inclusiveJets[iJet];
+  	vector<fastjet::PseudoJet> constituents = jet.constituents();
+  	Particle* jetP = new Particle();
+  	jetP->p.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.e());
+	jetP->Set("area", jet.area());
+  	static const MomKey ConsKey("constituents");
+  	jetP->AddVec(ConsKey);
+  	for(unsigned int iCons = 0; iCons < constituents.size(); iCons++){
+  		const PJ_Info* info = &(constituents[iCons].user_info<PJ_Info>());
+  		jetP->Add(ConsKey, info->Pointer);
+  	} // end loop over cons
+  	Add(FFinalKey, jetP);
+  }// end loop over jets
+
+  return FinalKey;
 }

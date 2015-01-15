@@ -46,7 +46,10 @@ class Analysis_tree : public Analysis_JetMET_Base {
   void FillTree(const MomKey JetKey);
   void FillEventVars(TTree *tree);
   void FillClVars(TTree *tree, int jindex, const MomKey JetKey);
-  void FillJetVars(TTree *tree, int jindex, const MomKey JetKey,vector<float> *jetpt,vector<float> *tjetpt,vector<int> *jetncl);
+  void FillJetVars(TTree *tree, int jindex, const MomKey JetKey,
+		   vector<float> *jetpt,vector<float> *jeteta,
+		   vector<float> *jetphi,vector<float> *tjetpt,vector<int> *jetncl);
+  void FillTrueJetVars(TTree *tree, int jindex, const MomKey JetKey);
   void FillTrkVars(TTree *tree, int jindex);
   void ResetBranches(TTree *tree);
 
@@ -55,6 +58,7 @@ class Analysis_tree : public Analysis_JetMET_Base {
   int   fTRunNumber;
   float fTWeight;
   float fTMu;
+  float fTRho;
   float fTNPVtruth;
 
   // 
@@ -77,17 +81,34 @@ class Analysis_tree : public Analysis_JetMET_Base {
   vector<int>   *j4ncl;
   vector<int>   *j5ncl;
   vector<float>   *j0pt;
+  vector<float>   *j0eta;
+  vector<float>   *j0phi;
   vector<float>   *j1pt;
+  vector<float>   *j1eta;
+  vector<float>   *j1phi;
   vector<float>   *j2pt;
+  vector<float>   *j2eta;
+  vector<float>   *j2phi;
   vector<float>   *j3pt;
+  vector<float>   *j3eta;
+  vector<float>   *j3phi;
   vector<float>   *j4pt;
+  vector<float>   *j4eta;
+  vector<float>   *j4phi;
   vector<float>   *j5pt;
+  vector<float>   *j5eta;
+  vector<float>   *j5phi;
   vector<float>   *tj0pt;
   vector<float>   *tj1pt;
   vector<float>   *tj2pt;
   vector<float>   *tj3pt;
   vector<float>   *tj4pt;
   vector<float>   *tj5pt;
+
+  vector<float>   *truejetpt;
+  vector<float>   *truejeteta;
+  vector<float>   *truejetphi;
+  vector<float>   *truejetenergy;
 
   private :
 
