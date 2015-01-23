@@ -385,8 +385,7 @@ void Analysis_tree::FillJetVars(TTree* tree, int jindex,
 
   Particle  *myjet         = &(jet(jindex,jetkey));
 
-  float area = myjet->Float("area")/1000;
-  jetpt ->push_back(myjet->p.Pt()-fTRho*area);
+  jetpt ->push_back(myjet->p.Pt());
   jetncl->push_back(myjet->Objs("constituents"));
   if(myjet->Bool("isHSJet")){
     Particle *tjet = (Particle*) myjet->Obj("AntiKt4Truth_match");
