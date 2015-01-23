@@ -25,9 +25,11 @@
 #include "TKey.h"
 #include "TObjString.h"
 #include "TObjArray.h"
+#include "fastjet/Selector.hh"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/ClusterSequenceActiveAreaExplicitGhosts.hh"
 #include "fastjet/PseudoJet.hh"
+#include "fastjet/tools/JetMedianBackgroundEstimator.hh"
 #include "fastjet/tools/Subtractor.hh"
 #include "ANN/ANN.h"
 
@@ -253,11 +255,23 @@ MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const do
   const static MomKey SJetKey("jets");
   vector<fastjet::PseudoJet> inputConst = ObjsToPJ(constType);
 
+  fastjet::Selector jselector = fastjet::SelectorAbsRapRange(0.0,2.1);
   fastjet::JetDefinition jetDef(algo, jetR,fastjet::E_scheme, fastjet::Best);
+  fastjet::JetDefinition jetDefkt(fastjet::kt_algorithm,0.4);
   fastjet::AreaDefinition active_area = fastjet::AreaDefinition(fastjet::active_area);
+  fastjet::AreaDefinition voronoi_area = fastjet::AreaDefinition(fastjet::voronoi_area,fastjet::VoronoiAreaSpec(0.9));
   fastjet::ClusterSequenceArea clustSeq(inputConst, jetDef, active_area);
 
+  fastjet::JetMedianBackgroundEstimator bge(jselector,jetDefkt,voronoi_area);
+  fastjet::Subtractor subtractor(&bge);
+  bge.set_particles(inputConst);
+  double rho = bge.rho();
+  MomKey rhokey("rho_");
+  rhokey+=extra;
+  Set(rhokey,rho);
+
   vector<fastjet::PseudoJet> inclusiveJets = sorted_by_pt(clustSeq.inclusive_jets(10.));
+  vector<fastjet::PseudoJet> subtractedJets = subtractor(inclusiveJets);
 
   TString key;
 
@@ -302,8 +316,9 @@ MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const do
 
   AddVec(SJetKey+FinalKey);
 
-  for(unsigned int iJet = 0 ; iJet < inclusiveJets.size() ; iJet++){
-  	fastjet::PseudoJet jet = inclusiveJets[iJet];
+  for(unsigned int iJet = 0 ; iJet < subtractedJets.size() ; iJet++){
+  	fastjet::PseudoJet jet = subtractedJets[iJet];
+	if(jet.perp2()<10.*10.) continue;
   	vector<fastjet::PseudoJet> constituents = jet.constituents();
   	Particle* jetP = new Particle();
   	jetP->p.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.e());
