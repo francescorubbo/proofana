@@ -69,6 +69,8 @@ bool Analysis_pileup::ProcessEvent()
   // make objects truthsStable: stable truth particles for jets 
   Analysis_JetMET_Base::AddStableParticles();
 
+  Analysis_JetMET_Base::MakeJets(fastjet::antikt_algorithm, 1.0, "truthsStable");
+
   vector<float> trk_pt, trk_z0_wrtPV;
   for(int it=0; it< tracks(); ++it){
     trk_pt .push_back(track(it).p.Pt());
@@ -104,22 +106,34 @@ bool Analysis_pileup::ProcessEvent()
    selectClusters(0.0,"jvf0");
    newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
    addTruthMatch(newjets,"AntiKt4Truth");
-   selectClusters(0.1,"jvf1");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf1","jvf1");
+   AddGhostMatch("AntiKt4jvf0","tracks","clustersjvf0",fastjet::antikt_algorithm,0.4);
+   for(int iJet = 0; iJet < jets("AntiKt4jvf0"); iJet++){
+     Particle *myjet = &(jet(iJet, "AntiKt4jvf0"));
+     vector<int> assoc_trk_indices;
+     for(int it=0; it<myjet->Objs("tracksGhost"); ++it){
+       Particle* trk = (Particle*) myjet->Obj("tracksGhost", it);
+       assoc_trk_indices.push_back(trk->Int("JVTindex"));
+     } 
+     (*jvt)(myjet->p.Pt(),assoc_trk_indices);
+     myjet->Set("JVT",jvt->JVT());
+   }
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0");
+   addTruthMatch(newjets,"AntiKt10Truth");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0noarea",false);
    addTruthMatch(newjets,"AntiKt4Truth");
-   selectClusters(0.2,"jvf2");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf2","jvf2");
-   addTruthMatch(newjets,"AntiKt4Truth");
-   selectClusters(0.3,"jvf3");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf3","jvf3");
-   addTruthMatch(newjets,"AntiKt4Truth");
-   selectClusters(0.4,"jvf4");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf4","jvf4");
-   addTruthMatch(newjets,"AntiKt4Truth");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0noarea",false);
+   addTruthMatch(newjets,"AntiKt10Truth");
+
    selectClusters(0.5,"jvf5");
    newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
    addTruthMatch(newjets,"AntiKt4Truth");
-   
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5");
+   addTruthMatch(newjets,"AntiKt10Truth");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5noarea",false);
+   addTruthMatch(newjets,"AntiKt4Truth");
+   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5noarea",false);
+   addTruthMatch(newjets,"AntiKt10Truth");
+
    return true;
 }
 
@@ -208,7 +222,9 @@ void Analysis_pileup::selectClusters(float jvfcut,string suffix)
   AddVec(clustersjvf);
   for(int iCl = 0; iCl < clusters("LCTopo"); iCl++){
     float cljvf = cluster(iCl,"LCTopo").Float("corrJVF");
-    if(cljvf>-1 && cljvf < jvfcut) continue;
+    float clpt = cluster(iCl,"LCTopo").p.Pt();
+    if(clpt<2.)
+      if(cljvf>-1 && cljvf < jvfcut) continue;
     Add(clustersjvf,&cluster(iCl,"LCTopo"));
   }
 }
@@ -250,7 +266,7 @@ void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetT
   }//jet loop
 }
 
-MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const double jetR, const MomKey constType, const MomKey extra){
+MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const double jetR, const MomKey constType, const MomKey extra,bool doareasub){
 
   const static MomKey SJetKey("jets");
   vector<fastjet::PseudoJet> inputConst = ObjsToPJ(constType);
@@ -271,7 +287,9 @@ MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const do
   Set(rhokey,rho);
 
   vector<fastjet::PseudoJet> inclusiveJets = sorted_by_pt(clustSeq.inclusive_jets(10.));
-  vector<fastjet::PseudoJet> subtractedJets = subtractor(inclusiveJets);
+  vector<fastjet::PseudoJet> subtractedJets = inclusiveJets;
+  if(doareasub)
+    subtractedJets = subtractor(inclusiveJets);
 
   TString key;
 
@@ -318,17 +336,25 @@ MomKey Analysis_pileup::MakeJetsWArea(const fastjet::JetAlgorithm algo, const do
 
   for(unsigned int iJet = 0 ; iJet < subtractedJets.size() ; iJet++){
   	fastjet::PseudoJet jet = subtractedJets[iJet];
-	if(jet.perp2()<10.*10.) continue;
+	if(jet.perp2()<5.*5.) continue;
   	vector<fastjet::PseudoJet> constituents = jet.constituents();
   	Particle* jetP = new Particle();
   	jetP->p.SetPtEtaPhiE(jet.pt(), jet.eta(), jet.phi(), jet.e());
 	jetP->Set("area", jet.area());
   	static const MomKey ConsKey("constituents");
   	jetP->AddVec(ConsKey);
+	double numwidth = 0.;
+	double denwidth = 0.;
   	for(unsigned int iCons = 0; iCons < constituents.size(); iCons++){
   		const PJ_Info* info = &(constituents[iCons].user_info<PJ_Info>());
   		jetP->Add(ConsKey, info->Pointer);
+		double ptcons = constituents[iCons].pt();
+		double drcons = constituents[iCons].delta_R(jet);
+		numwidth += drcons*ptcons;
+		denwidth += ptcons;
   	} // end loop over cons
+	jetP->Set("width",numwidth/denwidth);
+	jetP->Set("constscale_pt",jet.pt());
   	Add(FFinalKey, jetP);
   }// end loop over jets
 
