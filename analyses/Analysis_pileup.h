@@ -51,7 +51,7 @@ class Analysis_pileup : public Analysis_JetMET_Base {
   void selectTracks();
   void selectClusters(float jvfcut,string suffix);
   void addTruthMatch(const MomKey JetType, const MomKey TruthJetType);
-  MomKey MakeJetsWArea(const fastjet::JetAlgorithm algo, const double jetR, const MomKey constType, const MomKey extra = "");
+  MomKey MakeJetsWArea(const fastjet::JetAlgorithm algo, const double jetR, const MomKey constType, const MomKey extra = "",bool doareasub=true);
 
   private :			  
 
