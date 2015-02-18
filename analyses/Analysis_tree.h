@@ -146,6 +146,24 @@ class Analysis_tree : public Analysis_JetMET_Base {
   vector<float>   *tljnoarea0eta;
   vector<float>   *tljnoarea5eta;
 
+  vector<int>     *jvoroncl;
+  vector<float>   *jvoromass;
+  vector<float>   *jvorowidth;
+  vector<float>   *jvoropt;
+  vector<float>   *jvoroeta;
+  vector<float>   *jvorophi;
+  vector<float>   *tjvoropt;
+  vector<float>   *tjvoroeta;
+
+  vector<int>     *ljvoroncl;
+  vector<float>   *ljvoromass;
+  vector<float>   *ljvorowidth;
+  vector<float>   *ljvoropt;
+  vector<float>   *ljvoroeta;
+  vector<float>   *ljvorophi;
+  vector<float>   *tljvoropt;
+  vector<float>   *tljvoroeta;
+
   vector<float>   *truejetpt;
   vector<float>   *truejeteta;
   vector<float>   *truejetphi;

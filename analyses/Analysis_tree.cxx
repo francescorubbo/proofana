@@ -125,6 +125,24 @@
   tljnoarea5pt     = new vector<float>();  
   tljnoarea5eta    = new vector<float>();  
 
+  jvoroncl     = new vector<int>();  
+  jvoromass    = new vector<float>();  
+  jvorowidth   = new vector<float>();  
+  jvoropt      = new vector<float>();  
+  jvoroeta     = new vector<float>();  
+  jvorophi     = new vector<float>();  
+  tjvoropt     = new vector<float>();  
+  tjvoroeta    = new vector<float>();  
+
+  ljvoroncl     = new vector<int>();  
+  ljvoromass    = new vector<float>();  
+  ljvorowidth   = new vector<float>();  
+  ljvoropt      = new vector<float>();  
+  ljvoroeta     = new vector<float>();  
+  ljvorophi     = new vector<float>();  
+  tljvoropt     = new vector<float>();  
+  tljvoroeta    = new vector<float>();  
+
   truejetpt      = new vector<float>();  
   truejeteta     = new vector<float>();  
   truejetphi     = new vector<float>();  
@@ -246,6 +264,24 @@ void Analysis_tree::WorkerTerminate()
   delete tljnoarea0eta    ;  
   delete tljnoarea5eta    ;  
 
+  delete jvoroncl    ;  
+  delete jvoromass    ;  
+  delete jvorowidth    ;  
+  delete jvoropt    ;  
+  delete jvoroeta    ;  
+  delete jvorophi    ;  
+  delete tjvoropt    ;  
+  delete tjvoroeta    ;  
+
+  delete ljvoroncl    ;  
+  delete ljvoromass    ;  
+  delete ljvorowidth    ;  
+  delete ljvoropt    ;  
+  delete ljvoroeta    ;  
+  delete ljvorophi    ;  
+  delete tljvoropt    ;  
+  delete tljvoroeta    ;  
+
   delete truejetpt    ;  
   delete truejeteta    ;  
   delete truejetphi    ;  
@@ -272,6 +308,11 @@ void Analysis_tree::FillTree(const MomKey Key){
     Particle  *myjet         = &(jet(i,"AntiKt4jvf0"));
     j0jvt->push_back(myjet->Float("JVT"));
   }
+
+  for(int i=0; i<jets("AntiKt4VoronoiRho"); ++i)
+    FillJetVars(fTree, i, "AntiKt4VoronoiRho",jvoropt,jvoroeta,jvorophi,tjvoropt,tjvoroeta,jvoroncl,jvoromass,jvorowidth);
+  for(int i=0; i<jets("AntiKt10VoronoiRho"); ++i)
+    FillJetVars(fTree, i, "AntiKt10VoronoiRho",ljvoropt,ljvoroeta,ljvorophi,tljvoropt,tljvoroeta,ljvoroncl,ljvoromass,ljvorowidth,"AntiKt10Truth_match");
   
   for(int i=0; i<jets("AntiKt4jvf5"); ++i)
     FillJetVars(fTree, i, "AntiKt4jvf5",j5pt,j5eta,j5phi,tj5pt,tj5eta,j5ncl,j5mass,j5width);
@@ -398,6 +439,24 @@ void Analysis_tree::FillTree(const MomKey Key){
    tree->Branch("tljnoarea0eta","std::vector<float>",&tljnoarea0eta);
    tree->Branch("tljnoarea5eta","std::vector<float>",&tljnoarea5eta);
 
+   tree->Branch("jvoroncl","std::vector<int>",     &jvoroncl);
+   tree->Branch("jvoromass","std::vector<float>",  &jvoromass);
+   tree->Branch("jvorowidth","std::vector<float>", &jvorowidth);
+   tree->Branch("jvoropt","std::vector<float>",    &jvoropt);
+   tree->Branch("jvoroeta","std::vector<float>",   &jvoroeta);
+   tree->Branch("jvorophi","std::vector<float>",   &jvorophi);
+   tree->Branch("tjvoropt","std::vector<float>",      &tjvoropt);
+   tree->Branch("tjvoroeta","std::vector<float>",     &tjvoroeta);
+
+   tree->Branch("ljvoroncl","std::vector<int>",     &ljvoroncl);
+   tree->Branch("ljvoromass","std::vector<float>",  &ljvoromass);
+   tree->Branch("ljvorowidth","std::vector<float>", &ljvorowidth);
+   tree->Branch("ljvoropt","std::vector<float>",    &ljvoropt);
+   tree->Branch("ljvoroeta","std::vector<float>",   &ljvoroeta);
+   tree->Branch("ljvorophi","std::vector<float>",   &ljvorophi);
+   tree->Branch("tljvoropt","std::vector<float>",      &tljvoropt);
+   tree->Branch("tljvoroeta","std::vector<float>",     &tljvoroeta);
+
    tree->Branch("truejetpt","std::vector<float>",&truejetpt);
    tree->Branch("truejeteta","std::vector<float>",&truejeteta);
    tree->Branch("truejetphi","std::vector<float>",&truejetphi);
@@ -505,6 +564,24 @@ void Analysis_tree::ResetBranches(TTree *tree){
   tljnoarea5pt     ->clear();  
   tljnoarea0eta     ->clear();  
   tljnoarea5eta     ->clear();  
+
+  jvoroncl     ->clear();  
+  jvoromass     ->clear();  
+  jvorowidth     ->clear();  
+  jvoropt     ->clear();  
+  jvoroeta     ->clear();  
+  jvorophi     ->clear();  
+  tjvoropt     ->clear();  
+  tjvoroeta     ->clear();  
+
+  ljvoroncl     ->clear();  
+  ljvoromass     ->clear();  
+  ljvorowidth     ->clear();  
+  ljvoropt     ->clear();  
+  ljvoroeta     ->clear();  
+  ljvorophi     ->clear();  
+  tljvoropt     ->clear();  
+  tljvoroeta     ->clear();  
 
   truejetpt     ->clear();  
   truejeteta     ->clear();  
