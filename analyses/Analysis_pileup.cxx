@@ -223,13 +223,15 @@ void Analysis_pileup::selectClusters(float jvfcut,string suffix)
   for(int iCl = 0; iCl < clusters("LCTopo"); iCl++){
     float cljvf = cluster(iCl,"LCTopo").Float("corrJVF");
     float clpt = cluster(iCl,"LCTopo").p.Pt();
-    if(clpt<2.)
+    // if(clpt<2.)
       if(cljvf>-1 && cljvf < jvfcut) continue;
     Add(clustersjvf,&cluster(iCl,"LCTopo"));
   }
 }
 
 void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetType){
+
+  vector<int> matched;
   for(int iJet = 0; iJet < jets(JetType); iJet++) {
     Particle* thejet = &(jet(iJet, JetType));
     
@@ -242,6 +244,8 @@ void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetT
     int minDRindex =-1;
     int maxPtIndex =-1;
     for(int iTrueJ=0; iTrueJ < jets(TruthJetType); ++iTrueJ){
+      if(std::find(matched.begin(), matched.end(), iTrueJ) != matched.end())
+	continue;
       Particle* trueJ = &(jet(iTrueJ, TruthJetType));
 
       float dR = (thejet->p).DeltaR(trueJ->p);
@@ -251,6 +255,7 @@ void Analysis_pileup::addTruthMatch(const MomKey JetType, const MomKey TruthJetT
     }//true jets
 
     if(maxPtIndex != -1){
+      matched.push_back(maxPtIndex);
       thejet->Add(TruthJetType+"_match", &(jet(maxPtIndex, TruthJetType)));
       thejet->Set("isHSJet", true);  
       thejet->Set("isPUJet", false); 
