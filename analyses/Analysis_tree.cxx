@@ -309,10 +309,10 @@ void Analysis_tree::FillTree(const MomKey Key){
     j0jvt->push_back(myjet->Float("JVT"));
   }
 
-  for(int i=0; i<jets("AntiKt4VoronoiRho"); ++i)
-    FillJetVars(fTree, i, "AntiKt4VoronoiRho",jvoropt,jvoroeta,jvorophi,tjvoropt,tjvoroeta,jvoroncl,jvoromass,jvorowidth);
-  for(int i=0; i<jets("AntiKt10VoronoiRho"); ++i)
-    FillJetVars(fTree, i, "AntiKt10VoronoiRho",ljvoropt,ljvoroeta,ljvorophi,tljvoropt,tljvoroeta,ljvoroncl,ljvoromass,ljvorowidth,"AntiKt10Truth_match");
+  for(int i=0; i<jets("AntiKt4VoronoiOneSigma"); ++i)
+    FillJetVars(fTree, i, "AntiKt4VoronoiOneSigma",jvoropt,jvoroeta,jvorophi,tjvoropt,tjvoroeta,jvoroncl,jvoromass,jvorowidth);
+  for(int i=0; i<jets("AntiKt10VoronoiOneSigma"); ++i)
+    FillJetVars(fTree, i, "AntiKt10VoronoiOneSigma",ljvoropt,ljvoroeta,ljvorophi,tljvoropt,tljvoroeta,ljvoroncl,ljvoromass,ljvorowidth,"AntiKt10Truth_match");
   
   for(int i=0; i<jets("AntiKt4jvf5"); ++i)
     FillJetVars(fTree, i, "AntiKt4jvf5",j5pt,j5eta,j5phi,tj5pt,tj5eta,j5ncl,j5mass,j5width);
