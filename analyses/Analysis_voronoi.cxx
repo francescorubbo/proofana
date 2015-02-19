@@ -27,6 +27,7 @@
 #include "TObjArray.h"
 #include "fastjet/ClusterSequenceArea.hh"
 #include "fastjet/PseudoJet.hh"
+#include "fastjet/tools/JetMedianBackgroundEstimator.hh"
 
 ///=========================================
 /// WorkerBegin: setup binning, etc
@@ -56,12 +57,12 @@ bool Analysis_voronoi::ProcessEvent()
 
   OutputDir()->cd();
 
-  MakeVoronoiClusters(fastjet::antikt_algorithm , 0.4, "clustersLCTopo");
+  MakeVoronoiClusters(fastjet::kt_algorithm , 0.4, "clustersLCTopo");
   selectClusters();
   MomKey newjets;
-  newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiRho","VoronoiRho",false);  
+  newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiOneSigma","VoronoiOneSigma",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
-  newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 1.0, "clustersVoronoiRho","VoronoiRho",false);  
+  newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 1.0, "clustersVoronoiOneSigma","VoronoiOneSigma",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt10Truth");
   
   return true;
@@ -76,14 +77,13 @@ void Analysis_voronoi::WorkerTerminate()
 
 void Analysis_voronoi::selectClusters()
 {
-  const MomKey clusterskey("clustersVoronoiRho");
+  const MomKey clusterskey("clustersVoronoiOneSigma");
   AddVec(clusterskey);
-  float rho = Float("Eventshape_rhoKt4LC")*0.001;
-  Show();
+  float sigma = Float("sigma_voronoi");
   for(int iCl = 0; iCl < clusters("Voronoi"); iCl++){
     float area = cluster(iCl,"Voronoi").Float("area");
     float clpt = cluster(iCl,"Voronoi").p.Pt();
-    if(clpt<area*rho) continue;
+    if(clpt<area*sqrt(area)*sigma) continue;
     Add(clusterskey,&cluster(iCl,"Voronoi"));
   }
 }
@@ -92,11 +92,14 @@ MomKey Analysis_voronoi::MakeVoronoiClusters(const fastjet::JetAlgorithm algo, c
 
   const static MomKey SJetKey("clustersVoronoi");
   vector<fastjet::PseudoJet> inputConst = ObjsToPJ(constType);
+  fastjet::Selector jselector = fastjet::SelectorAbsRapRange(0.0,2.1);
 
   fastjet::JetDefinition jetDef(algo, jetR,fastjet::E_scheme, fastjet::Best);
-  fastjet::AreaDefinition area_def(fastjet::voronoi_area, fastjet::VoronoiAreaSpec());
+  fastjet::AreaDefinition area_def(fastjet::voronoi_area, fastjet::VoronoiAreaSpec(0.9));
 
   fastjet::ClusterSequenceArea clustSeq(inputConst, jetDef, area_def);  
+  fastjet::JetMedianBackgroundEstimator bge(jselector,jetDef,area_def);
+  bge.set_particles(inputConst);
 
   vector<fastjet::PseudoJet> inclusiveJets = sorted_by_pt(clustSeq.inclusive_jets(0));
 
@@ -105,6 +108,8 @@ MomKey Analysis_voronoi::MakeVoronoiClusters(const fastjet::JetAlgorithm algo, c
   AddVec(SJetKey);
 
   float rho = Float("Eventshape_rhoKt4LC")*0.001;
+  Set("rho_voronoi",bge.rho());
+  Set("sigma_voronoi",bge.sigma());
 
   for(unsigned int iJet = 0 ; iJet < inclusiveJets.size() ; iJet++){
   	fastjet::PseudoJet jet = inclusiveJets[iJet];
