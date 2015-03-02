@@ -57,13 +57,31 @@ class Analysis_treeb2bjvt : public Analysis_JetMET_Base {
   float fTWeight;
   float fTMu;
   float fTNPVtruth;
+  float fTNPV;
+  float fTVtxDzTruth;
 
   // 
   vector<float>   *jpt;
   vector<float>   *jeta;
   vector<float>   *jphi;
+  vector<float>   *jjvt;
+  vector<float>   *jcorrjvf;
+  vector<float>   *jrpt;
+  vector<float>   *jb2bpt;
   vector<float>   *jb2bjvt;
+  vector<float>   *jb2bcorrjvf;
+  vector<float>   *jb2brpt;
+  vector<float>   *jb2bpt_trk2;
+  vector<float>   *jb2bjvt_trk2;
+  vector<float>   *jb2bcorrjvf_trk2;
+  vector<float>   *jb2brpt_trk2;
+  vector<float>   *jb2bpt_trk4;
+  vector<float>   *jb2bjvt_trk4;
+  vector<float>   *jb2bcorrjvf_trk4;
+  vector<float>   *jb2brpt_trk4;
   vector<float>   *tjpt;
+  vector<bool>   *jispu;
+  vector<bool>   *jishs;
 
   vector<float>   *truejetpt;
   vector<float>   *truejeteta;
