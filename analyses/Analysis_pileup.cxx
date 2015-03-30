@@ -90,51 +90,51 @@ bool Analysis_pileup::ProcessEvent()
   // JVT
   jvt->init(trk_pt, trk_z0_wrtPV, vxp_trk_index);
   
-   for(int it=0; it< clusters("LCTopo"); ++it){
-     Particle  *mycluster = &(cluster(it, "LCTopo"));
-     associateTrackstoCluster(mycluster);
-     vector<int> assoc_trk_indices;
-     for(int it=0; it<mycluster->Objs("assoctrks"); ++it){
-       Particle* trk = (Particle*) mycluster->Obj("assoctrks", it);
-       assoc_trk_indices.push_back(trk->Int("JVTindex"));
-     }
-     (*jvt)(mycluster->p.Pt(),assoc_trk_indices);
-     mycluster->Set("corrJVF",jvt->corrJVF());
-   }
-
-   MomKey newjets;
-   selectClusters(0.0,"jvf0");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
-   addTruthMatch(newjets,"AntiKt4Truth");
-   AddGhostMatch("AntiKt4jvf0","tracks","clustersjvf0",fastjet::antikt_algorithm,0.4);
-   for(int iJet = 0; iJet < jets("AntiKt4jvf0"); iJet++){
-     Particle *myjet = &(jet(iJet, "AntiKt4jvf0"));
-     vector<int> assoc_trk_indices;
-     for(int it=0; it<myjet->Objs("tracksGhost"); ++it){
-       Particle* trk = (Particle*) myjet->Obj("tracksGhost", it);
-       assoc_trk_indices.push_back(trk->Int("JVTindex"));
-     } 
-     (*jvt)(myjet->p.Pt(),assoc_trk_indices);
-     myjet->Set("JVT",jvt->JVT());
-   }
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0");
-   addTruthMatch(newjets,"AntiKt10Truth");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0noarea",false);
-   addTruthMatch(newjets,"AntiKt4Truth");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0noarea",false);
-   addTruthMatch(newjets,"AntiKt10Truth");
-
-   selectClusters(0.5,"jvf5");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
-   addTruthMatch(newjets,"AntiKt4Truth");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5");
-   addTruthMatch(newjets,"AntiKt10Truth");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5noarea",false);
-   addTruthMatch(newjets,"AntiKt4Truth");
-   newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5noarea",false);
-   addTruthMatch(newjets,"AntiKt10Truth");
-
-   return true;
+  for(int iCl=0; it< clusters("LCTopo"); ++iCl){
+    Particle  *mycluster = &(cluster(iCl, "LCTopo"));
+    associateTrackstoCluster(mycluster);
+    vector<int> assoc_trk_indices;
+    for(int it=0; it<mycluster->Objs("assoctrks"); ++it){
+      Particle* trk = (Particle*) mycluster->Obj("assoctrks", it);
+      assoc_trk_indices.push_back(trk->Int("JVTindex"));
+    }
+    (*jvt)(mycluster->p.Pt(),assoc_trk_indices);
+    mycluster->Set("corrJVF",jvt->corrJVF());
+  }
+  
+  MomKey newjets;
+  selectClusters(0.0,"jvf0");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  AddGhostMatch("AntiKt4jvf0","tracks","clustersjvf0",fastjet::antikt_algorithm,0.4);
+  for(int iJet = 0; iJet < jets("AntiKt4jvf0"); iJet++){
+    Particle *myjet = &(jet(iJet, "AntiKt4jvf0"));
+    vector<int> assoc_trk_indices;
+    for(int it=0; it<myjet->Objs("tracksGhost"); ++it){
+      Particle* trk = (Particle*) myjet->Obj("tracksGhost", it);
+      assoc_trk_indices.push_back(trk->Int("JVTindex"));
+    } 
+    (*jvt)(myjet->p.Pt(),assoc_trk_indices);
+    myjet->Set("JVT",jvt->JVT());
+  }
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0");
+  addTruthMatch(newjets,"AntiKt10Truth");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf0","jvf0noarea",false);
+  addTruthMatch(newjets,"AntiKt4Truth");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf0","jvf0noarea",false);
+  addTruthMatch(newjets,"AntiKt10Truth");
+  
+  selectClusters(0.5,"jvf5");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5");
+  addTruthMatch(newjets,"AntiKt4Truth");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5");
+  addTruthMatch(newjets,"AntiKt10Truth");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersjvf5","jvf5noarea",false);
+  addTruthMatch(newjets,"AntiKt4Truth");
+  newjets = MakeJetsWArea(fastjet::antikt_algorithm,1.0,"clustersjvf5","jvf5noarea",false);
+  addTruthMatch(newjets,"AntiKt10Truth");
+  
+  return true;
 }
 
 /// WorkerTerminate: clean up
