@@ -13,16 +13,17 @@
 void runpileup(TString mode       = "cluster",         // local, lite, or cluster
 TString identifier = "pileup",                      // tag 
 	       // TString dataset   = "mc12_14TeV_Pythia8_J2_ITK_140_140_COMMON.jetmet2012pileupcustom",  // dataset name
-	       TString dataset   = "PythJ1and2mc12aJETMET_short.jetmet2012pileupcustom",  // dataset name
+	       // TString dataset   = "PythJ1and2mc12aJETMET_short.jetmet2012pileupcustom",  // dataset name
+	       TString dataset   = "VBFH125_ZZ4lep_PowhegPythia8MC12_COMMON.jetmet2012pileupcustom",  // dataset name
 	       // TString dataset   = "PythiaNoPU_COMMON.jetmet2012pileupcustom",  // dataset name
-	        // TString dataset   = "PythiaPU40_COMMON.jetmet2012pileupcustom",  // dataset name
+	       // TString dataset   = "PythiaPU40_COMMON.jetmet2012pileupcustom",  // dataset name
 	       // TString dataset   = "PythiaPU80_COMMON.jetmet2012pileupcustom", 
 	       // dataset name
 TString username   = "rubbo",                               // username (e.g. swiatlow, fizisist)
 bool mcweights     = false,                                 // use mc weights?
 bool debug         = false,                                // debug mode
 bool doPRWGen      = false,                                 // PRWgen
-Long64_t nentries  = -1                           // nevents
+Long64_t nentries  = -1                            // nevents
     ) 
 { 
     
@@ -164,9 +165,9 @@ Long64_t nentries  = -1                           // nevents
     Config* chain = new Config("chain",configfile);
     chain->AddVec("ANALYSIS");
     chain->Add("ANALYSIS",QCDSelection);
-    chain->Add("ANALYSIS",pileup0);
-    chain->Add("ANALYSIS",voronoi);
-    chain->Add("ANALYSIS",tree0);
+    // chain->Add("ANALYSIS",pileup0);
+    // chain->Add("ANALYSIS",voronoi);
+    // chain->Add("ANALYSIS",tree0);
     chain->Add("ANALYSIS",pileup1);
     chain->Add("ANALYSIS",tree1);
 
