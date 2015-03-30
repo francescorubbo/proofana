@@ -19,12 +19,13 @@
 #include "Particle.h"
 #include "TMVA/Reader.h"
 #include "JetVertexTagger/JetVertexTagger.h" 
+#include "Analysis_pileup.h"
  
 using std::cout;
 using std::endl;
 
 
-class Analysis_btobjvt : public Analysis_JetMET_Base {
+class Analysis_btobjvt : public Analysis_pileup {
 
  public :
   

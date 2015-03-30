@@ -66,10 +66,15 @@ bool Analysis_btobjvt::ProcessEvent()
   // -----------------------------
   // make objects truthsStable: stable truth particles for jets 
   Analysis_JetMET_Base::AddStableParticles();
+  Analysis_JetMET_Base::MakeJets(fastjet::antikt_algorithm, 0.2, "truthsStable");
+  
   selectTracks();
   
-  MakeJets(fastjet::antikt_algorithm, 0.2, "tracksforjvf","tracks",5);
-  MakeJets(fastjet::antikt_algorithm, 0.4, "tracksforjvf","tracks",5);
+  MomKey newjets;
+  newjets = MakeJets(fastjet::antikt_algorithm, 0.2, "tracksforjvf","tracks",2);
+  Analysis_pileup::addTruthMatch(newjets,"AntiKt2Truth");
+  newjets = MakeJets(fastjet::antikt_algorithm, 0.4, "tracksforjvf","tracks",2);
+  Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
 
   vector<float> trk_pt, trk_z0_wrtPV;
   for(int it=0; it< tracks(); ++it){
@@ -138,6 +143,10 @@ bool Analysis_btobjvt::ProcessEvent()
     Particle *myjet = &(jet(iJet, "AntiKt4LCTopo"));
 
     myjet->Set("BtoBJVT", -2.);
+    myjet->Set("BtoBJVT_70", -2.);
+    myjet->Set("BtoBJVT_75", -2.);
+    myjet->Set("BtoBJVT_85", -2.);
+    myjet->Set("BtoBJVT_90", -2.);
     myjet->Set("BtoBcorrJVF", -2.);
     myjet->Set("BtoBRpT", -2.);
     myjet->Set("BtoBJVT_trk4", -2.);
@@ -152,17 +161,48 @@ bool Analysis_btobjvt::ProcessEvent()
 
     if(myjet->p.Eta()<2.4) continue; 
 
-    float maxdPhi = 0;
+    float mindPhi = 99.;
+    float mindPhi70 = 99.;
+    float mindPhi75 = 99.;
+    float mindPhi85 = 99.;
+    float mindPhi90 = 99.;
     Particle* backtobackjet =0;
     for(int iJ=0; iJ<jets("AntiKt4LCTopo"); ++iJ){
       Particle *otherjet = &(jet(iJ, "AntiKt4LCTopo"));
       if(myjet == otherjet)                            continue;
       if(fabs(otherjet -> p.Eta())>2.4)                continue; // only looking at jets within the tracker
-      if(otherjet -> p.Pt()<20) continue; // only looking at jets with pT > 30 GeV
-      if(fabs(otherjet->p.DeltaPhi(myjet->p))<maxdPhi) continue; // keep track of jet that is most back to back
-      
-      maxdPhi = fabs(otherjet->p.DeltaPhi(myjet->p));
-      backtobackjet = otherjet;
+      if(otherjet -> p.Pt()<10) continue; // only looking at jets with pT > 30 GeV
+      float ptasymm = fabs(otherjet->p.Pt()-myjet->p.Pt())/(otherjet->p.Pt()+myjet->p.Pt());
+      // if(ptasymm>0.3) continue;
+      // float dPhi = fabs(fabs(otherjet->p.DeltaPhi(myjet->p))-PI);
+      // if (dPhi>0.8) continue;
+      // if(dPhi>mindPhi) continue; // keep track of jet that is most back to back
+
+      float dPhi = fabs(fabs(otherjet->p.DeltaPhi(myjet->p))-PI);
+      if(ptasymm<0.3){
+	if(dPhi<1.5) //70% working point
+	  if(dPhi<mindPhi70){
+	    myjet->Set("BtoBJVT_70", otherjet->Float("JVT"));
+	    mindPhi70 = dPhi;
+	  }
+	if(dPhi<0.8) //75% working point
+	  if(dPhi<mindPhi75){
+	    myjet->Set("BtoBJVT_75", otherjet->Float("JVT"));
+	    mindPhi75 = dPhi;
+	  }
+      }//ptasymm<0.3
+      if(ptasymm<0.2){
+	if(dPhi<0.8) //85% working point
+	  if(dPhi<mindPhi85){
+	    myjet->Set("BtoBJVT_85", otherjet->Float("JVT"));
+	    mindPhi85 = dPhi;
+	  }
+	if(dPhi<0.6) //90% working point
+	  if(dPhi<mindPhi90){
+	    myjet->Set("BtoBJVT_90", otherjet->Float("JVT"));
+	    mindPhi90 = dPhi;
+	  }
+      }//ptasymm<0.3      
     }
     if(backtobackjet!=0){
       myjet->Set("BtoBJVT", backtobackjet->Float("JVT"));
