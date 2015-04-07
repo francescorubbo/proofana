@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <time.h>
 
-void runVoronoi_cvf(TString mode       = "local",         // local, lite, or cluster
+void runVoronoi_cvf(TString mode       = "cluster",         // local, lite, or cluster
 TString identifier = "pileup",                      // tag 
 	       // TString dataset   = "mc12_14TeV_Pythia8_J2_ITK_140_140_COMMON.jetmet2012pileupcustom",  // dataset name
 	       TString dataset   = "PythJ1and2mc12aJETMET_short.jetmet2012pileupcustom",  // dataset name
