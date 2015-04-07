@@ -355,6 +355,7 @@ void Analysis_tree::FillTree(const MomKey Key){
    tree->Branch("NPV" ,   &fTNPV,               "NPV/F");
    tree->Branch("Mu" ,         &fTMu,                     "Mu/F");
    tree->Branch("Rho" ,         &fTRho,                     "Rho/F");
+   tree->Branch("SigmaRho" ,         &fTSigma,                     "SigmaRho/F");
 
    // Jet vars ------------------------------------------------------------
 
@@ -482,6 +483,7 @@ void Analysis_tree::ResetBranches(TTree *tree){
   fTNPV                   = -99;
   fTMu                    = -99;
   fTRho                    = -99;
+  fTSigma                    = -99;
 
   // jet vars
   cljvfcorr ->clear();  
@@ -607,7 +609,8 @@ void Analysis_tree::FillEventVars(TTree *tree){
   fTNPV                         = Exists("NPV")? Int("NPV"):-1;
   fTWeight                      = DefaultWeight();
   fTMu                          = Float("averageIntPerXing");
-  fTRho                          = Float("Eventshape_rhoKt4LC");
+  fTRho                          = Float("rho_voronoi");
+  fTSigma                          = Float("sigma_voronoi");
 
   if(Debug()) cout <<"Analysis_tree::FillEventVars End" << endl;
   return;
