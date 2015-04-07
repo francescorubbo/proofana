@@ -92,41 +92,54 @@ MakeSpreadVoronoiClusters(spreadr,"Voronoi_CVFcutx");
 
   MomKey newjets;
   
+  setMinDR("AntiKt4Truth");
   //Standard cuts:
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersLCTopo_CVFcut","j0_CVF",true);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersLCTopo","j0",true);
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm,0.4,"clustersLCTopo","jnoarea0",false);
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
 
   //Voronoi nsigma:
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiZeroSigma","VoronoiZeroSigma",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiOneSigma","VoronoiOneSigma",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiTenSigma","VoronoiTenSigma",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
 
   //Voronoi with CVF:
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiZeroSigma_CVFcut5","VoronoiZeroSigma_CVF5",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiZeroSigma_CVFcutx","VoronoiZeroSigma_CVFx",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiOneSigma_CVFcut5","VoronoiOneSigma_CVF5",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoiOneSigma_CVFcutx","VoronoiOneSigma_CVFx",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
 
   //Spreading with CVF:
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoi_SpreadPT","Voronoi_SpreadPT",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoi_CVFcut5_SpreadPT","Voronoi_CVF5_SpreadPT",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
   newjets = Analysis_pileup::MakeJetsWArea(fastjet::antikt_algorithm, 0.4, "clustersVoronoi_CVFcutx_SpreadPT","Voronoi_CVFx_SpreadPT",false);  
   Analysis_pileup::addTruthMatch(newjets,"AntiKt4Truth");
+  setMinDR(newjets);
 
- // Show();
  
   return true;
 }
@@ -136,6 +149,21 @@ MakeSpreadVoronoiClusters(spreadr,"Voronoi_CVFcutx");
 void Analysis_voronoi_cvf::WorkerTerminate()
 {
 
+}
+
+void Analysis_voronoi_cvf::setMinDR(MomKey key){
+
+for(int i=0; i<jets(key); i++){
+        float mindr=100;
+        for(int j=0; j<jets(key); j++){
+                if(i==j) continue;
+                float dr=jet(i,key).p.DeltaR(jet(j,key).p);
+                if(dr<mindr) mindr=dr;
+        }
+//        Particle  *myjet = &(jet(i, key));
+//      myjet->Set("minDR",mindr);
+        jet(i,key).Set("mindr",mindr);
+}
 }
 
 void Analysis_voronoi_cvf::SetCVF(MomKey key){
@@ -241,8 +269,19 @@ newkey+="_SpreadPT";
 //const MomKey clusterskey(newkey);
 AddVec(newkey);
 
+MomKey event=TString::Format("%i",EventNumber());
+MomKey voronoi_file="cluster_centers_"+key+"_"+event;
+MomKey sub_file="cluster_centers_sub_"+key+"_"+event;
+MomKey spread_file="cluster_centers_spread_"+key+"_"+event;
+ofstream fout(voronoi_file);
+ofstream gout(sub_file);
+ofstream hout(spread_file);
+
 for(int iCl = 0; iCl < clusters(key); iCl++){
+fout << cluster(iCl,key).p.Eta() << "\t" << cluster(iCl,key).p.Phi() << "\t" << cluster(iCl,key).p.Pt() << endl;
+gout << cluster(iCl,key).p.Eta() << "\t" << cluster(iCl,key).p.Phi() << "\t" << cluster(iCl,key).Float("correctedPT") << endl;
 if(!(spreadPT[iCl]>0)) continue;
+hout << cluster(iCl,key).p.Eta() << "\t" << cluster(iCl,key).p.Phi() << "\t" << spreadPT[iCl] << endl;
   		Particle * constituentP = new Particle();
 		constituentP->p.SetPtEtaPhiM(spreadPT[iCl],
 					     cluster(iCl,key).p.Eta(),
@@ -250,6 +289,9 @@ if(!(spreadPT[iCl]>0)) continue;
 					     cluster(iCl,key).p.M());
   		Add(newkey,constituentP);
 }
+fout.close();
+gout.close();
+hout.close();
 
 }
 
