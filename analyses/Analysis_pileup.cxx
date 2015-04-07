@@ -68,7 +68,6 @@ bool Analysis_pileup::ProcessEvent()
   // -----------------------------
   // make objects truthsStable: stable truth particles for jets 
   Analysis_JetMET_Base::AddStableParticles();
-
   Analysis_JetMET_Base::MakeJets(fastjet::antikt_algorithm, 1.0, "truthsStable");
 
   vector<float> trk_pt, trk_z0_wrtPV;
