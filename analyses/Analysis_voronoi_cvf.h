@@ -53,6 +53,7 @@ class Analysis_voronoi_cvf : public Analysis_pileup {
   void MakeSpreadVoronoiClusters(float spreadr, MomKey key);
   void SetCVF(MomKey key);
   void SpreadPT();
+  void setMinDR(MomKey key);
 
   private :			  
 
