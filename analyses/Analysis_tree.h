@@ -61,6 +61,7 @@ class Analysis_tree : public Analysis_JetMET_Base {
   float fTWeight;
   float fTMu;
   float fTRho;
+  float fTSigma;
   float fTNPVtruth;
   float fTNPV;
 
@@ -69,6 +70,7 @@ class Analysis_tree : public Analysis_JetMET_Base {
   vector<float>   *cljvfcorr;
   vector<float>   *clfem;
   vector<float>   *clpt;
+  vector<float>   *clarea;
   vector<float>   *cleta;
   vector<float>   *clphi;
   vector<float>   *clenergy;
