@@ -90,7 +90,7 @@ bool Analysis_pileup::ProcessEvent()
   // JVT
   jvt->init(trk_pt, trk_z0_wrtPV, vxp_trk_index);
   
-  for(int iCl=0; it< clusters("LCTopo"); ++iCl){
+  for(int iCl=0; iCl< clusters("LCTopo"); ++iCl){
     Particle  *mycluster = &(cluster(iCl, "LCTopo"));
     associateTrackstoCluster(mycluster);
     vector<int> assoc_trk_indices;
